@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>TONPay Africa</title>
+  <link rel="stylesheet" href="css/main.css">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="logo">
+        <span class="logo-icon">💎</span>
+        <span class="logo-text">TONPay Africa</span>
+      </div>
+      <button id="walletBtn" class="wallet-btn">Connect Wallet</button>
+    </header>
+
+    <!-- Wallet Info (hidden by default) -->
+    <div id="walletInfo" class="wallet-info hidden">
+      <div class="balance-card">
+        <p class="balance-label">Your Balance</p>
+        <h2 id="tonBalance" class="balance-amount">0 TON</h2>
+        <p id="ngnBalance" class="balance-secondary">≈ ₦0</p>
+        <p id="walletAddress" class="wallet-address">Not connected</p>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <h1 class="welcome-title">Welcome to TONPay Africa! 🚀</h1>
+      <p class="welcome-text">Send TON, split bills, and gift payments easily.</p>
+      
+      <div class="action-grid">
+        <div class="action-card">
+          <span class="action-icon">📤</span>
+          <h3>Send TON</h3>
+          <p>Transfer to anyone instantly</p>
+        </div>
+
+        <div class="action-card">
+          <span class="action-icon">🧾</span>
+          <h3>Split Bill</h3>
+          <p>Share expenses with friends</p>
+        </div>
+
+        <div class="action-card">
+          <span class="action-icon">🎁</span>
+          <h3>Send Gift</h3>
+          <p>Tip or surprise someone</p>
+        </div>
+
+        <div class="action-card">
+          <span class="action-icon">📋</span>
+          <h3>History</h3>
+          <p>View past transactions</p>
+        </div>
+      </div>
+    </main>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay hidden">
+      <div class="spinner"></div>
+      <p>Loading...</p>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
