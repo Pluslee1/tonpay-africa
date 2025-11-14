@@ -17,9 +17,10 @@ This is the **easiest and fastest** way to get your app live.
 3. Click **"New Project"** → **"Deploy from GitHub"**
 4. Select your `tonpay-africa` repository
 5. Railway will detect your project. Click **"Add Service"** → **"GitHub Repo"**
-6. In the service settings:
-   - **Root Directory:** Set to `server`
-   - **Start Command:** `npm start`
+6. In the service settings (click on the service, then Settings):
+   - **Root Directory:** Set to `server` ⚠️ **IMPORTANT!**
+   - **Start Command:** Leave empty (it will use `npm start` from package.json)
+   - OR manually set: `npm start`
 7. Go to **"Variables"** tab and add these environment variables:
 
 ```env

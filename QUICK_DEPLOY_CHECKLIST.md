@@ -32,8 +32,10 @@ Follow this checklist to deploy your app in 30 minutes!
 - [ ] New Project → Deploy from GitHub
 - [ ] Select `tonpay-africa` repository
 - [ ] Add Service → GitHub Repo
-- [ ] Set Root Directory: `server`
-- [ ] Set Start Command: `npm start`
+- [ ] **IMPORTANT:** Click on the service → Settings tab
+- [ ] Set **Root Directory:** `server` ⚠️ (This is critical!)
+- [ ] Leave **Start Command** empty (or set to `npm start`)
+- [ ] Save settings
 - [ ] Add Environment Variables:
   ```
   NODE_ENV=production
