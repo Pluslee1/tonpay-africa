@@ -4,12 +4,11 @@ services:
     env: node
     plan: free
     rootDir: server
-    buildCommand: npm install
+    buildCommand: npm ci --only=production
     startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PORT
-        value: 5000
+      # PORT is auto-assigned by Render, don't set it
       # Add your other environment variables in Render dashboard
 
