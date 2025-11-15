@@ -41,12 +41,14 @@ console.log('🔌 Attempting to connect to MongoDB...');
 console.log('📍 URI:', MONGODB_URI.replace(/:[^:@]+@/, ':****@')); // Hide password in logs
 
 mongoose.connect(MONGODB_URI, {
-  serverSelectionTimeoutMS: 10000, // 10 second timeout
+  serverSelectionTimeoutMS: 30000, // 30 second timeout (increased for Render)
   socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
-  connectTimeoutMS: 10000, // 10 second connection timeout
+  connectTimeoutMS: 30000, // 30 second connection timeout (increased for Render)
   maxPoolSize: 10, // Maintain up to 10 socket connections
   minPoolSize: 1, // Maintain at least 1 socket connection
-  family: 4 // Use IPv4, skip trying IPv6
+  family: 4, // Use IPv4, skip trying IPv6
+  retryWrites: true,
+  w: 'majority'
 })
   .then(() => {
     console.log('✅ MongoDB connected successfully!');
