@@ -33,12 +33,22 @@ export const AuthProvider = ({ children }) => {
   };
 
   const login = async (emailOrPhone, password) => {
-    const res = await axios.post('/api/auth/login', { email: emailOrPhone, phone: emailOrPhone, password });
+    // Try email first, then phone
+    const loginData = emailOrPhone.includes('@') 
+      ? { email: emailOrPhone, password }
+      : { phone: emailOrPhone, password };
+    
+    const res = await axios.post('/api/auth/login', loginData);
+    
+    if (!res.data.success) {
+      throw new Error(res.data.error || 'Login failed');
+    }
+    
     localStorage.setItem('accessToken', res.data.accessToken);
     localStorage.setItem('refreshToken', res.data.refreshToken);
     axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.accessToken}`;
     setUser(res.data.user);
-    setIsAdmin(res.data.user.role === 'admin');
+    setIsAdmin(res.data.user?.role === 'admin');
     return res.data;
   };
 

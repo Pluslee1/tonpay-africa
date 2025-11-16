@@ -66,10 +66,15 @@ router.get('/health', authMiddleware, adminMiddleware, async (req, res) => {
 
 const checkPaystackHealth = async () => {
   try {
-    const balance = await paystack.getBalance();
-    return { status: 'healthy', balance: balance.balance || 0 };
+    const result = await paystack.getBalance();
+    if (result.success) {
+      return { status: 'healthy', balance: result.balance || 0, currency: result.currency || 'NGN' };
+    } else {
+      return { status: 'unhealthy', error: result.error || 'Failed to fetch balance' };
+    }
   } catch (error) {
-    return { status: 'unhealthy', error: error.message };
+    console.error('Paystack health check error:', error);
+    return { status: 'unhealthy', error: error.message || 'Unknown error' };
   }
 };
 
