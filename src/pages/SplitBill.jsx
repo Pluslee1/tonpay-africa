@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { TonConnectButton, useTonAddress } from '@tonconnect/ui-react';
 import { validateAddress } from '../services/ton';
@@ -6,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { isValidTONAddress } from '../utils/validators';
 
 export default function SplitBill() {
+  const navigate = useNavigate();
   const address = useTonAddress();
   const { user } = useAuth();
   const mockAddress = () => 'EQA'.padEnd(48, 'A');
@@ -176,8 +178,9 @@ export default function SplitBill() {
   const perPerson = formData.totalAmount ? (parseFloat(formData.totalAmount) / totalPeople) : 0;
 
   return (
-    <div className="max-w-2xl mx-auto space-y-3 px-3 py-3 safe-area-padding app-gradient min-h-screen">
-      <h2 className="text-xl font-bold">Split Bill</h2>
+    <div className="w-full h-screen overflow-y-auto overflow-x-hidden">
+      <div className="max-w-2xl mx-auto space-y-3 px-3 py-3 pb-24 app-gradient">
+        <h2 className="text-xl font-bold">Split Bill</h2>
 
       <div className="tp-card p-3">
         <div className="mb-2">
@@ -189,6 +192,18 @@ export default function SplitBill() {
       </div>
 
       <form onSubmit={handleSubmit} className="tp-card p-3 space-y-3">
+        <div>
+          <label className="block text-xs font-medium mb-1">Description</label>
+          <input
+            type="text"
+            required
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            className="tp-input w-full text-sm py-2"
+            placeholder="e.g., Dinner at restaurant"
+          />
+        </div>
+
         <div>
           <label className="block text-xs font-medium mb-1">Total Amount (TON)</label>
           <input
@@ -375,14 +390,67 @@ export default function SplitBill() {
       )}
 
       {bills.length > 0 && (
-        <div className="space-y-2">
+        <div className="space-y-2 mb-6">
+          <h3 className="text-lg font-semibold mt-4">Your Active Split Bills</h3>
           {safeBills.map(bill => (
-            <div key={bill._id} className="tp-card mb-2 p-2">
-              <BillDetail bill={bill} />
+            <div key={bill._id} className="tp-card mb-2 p-3">
+              <BillDetail bill={bill} user={user} navigate={navigate} />
             </div>
           ))}
         </div>
       )}
+      </div>
+    </div>
+  );
+}
+
+// BillDetail Component
+function BillDetail({ bill, user, navigate }) {
+  const safeRate = 2000; // Default rate
+  const isHost = user?.walletAddress === bill.hostAddress;
+  const isParticipant = bill.participants?.some(p => p.address === user?.walletAddress);
+
+  return (
+    <div className="space-y-2">
+      <div className="flex justify-between items-center">
+        <h4 className="font-semibold text-sm">{bill.description || 'Split Bill'}</h4>
+        <span className={`text-xs px-2 py-0.5 rounded-full ${
+          bill.status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'
+        }`}>
+          {bill.status}
+        </span>
+      </div>
+      <div className="text-xs opacity-80 space-y-1">
+        <p>Total: {(bill.totalAmount || 0).toFixed(2)} TON (≈ ₦{((bill.totalAmount || 0) * safeRate).toLocaleString('en-NG')})</p>
+        <p>Host: {bill.hostAddress?.slice(0, 6)}...{bill.hostAddress?.slice(-4)}</p>
+        <p>Participants: {bill.participants?.length || 0}</p>
+        <p>Created: {new Date(bill.createdAt).toLocaleDateString()}</p>
+      </div>
+      
+      <div className="flex gap-2 mt-2">
+        {isHost && bill.status === 'active' && (
+          <button 
+            onClick={() => navigate(`/split-bill/${bill._id}/manage`)}
+            className="tp-btn tp-button-primary text-xs px-3 py-1"
+          >
+            Manage
+          </button>
+        )}
+        {!isHost && isParticipant && bill.status === 'active' && (
+          <button 
+            onClick={() => navigate(`/split-bill/${bill._id}/join`)}
+            className="tp-btn tp-button-primary text-xs px-3 py-1"
+          >
+            View/Pay
+          </button>
+        )}
+        <button 
+          onClick={() => navigate(`/split-bill/${bill._id}`)}
+          className="tp-btn tp-button-secondary text-xs px-3 py-1"
+        >
+          Details
+        </button>
+      </div>
     </div>
   );
 }

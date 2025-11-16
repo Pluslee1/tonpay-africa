@@ -52,6 +52,12 @@ export default function History() {
       // Check if response is successful (success can be true, undefined, or not false)
       if (res.data && res.data.success !== false) {
         let txns = res.data.transactions || res.data || [];
+        
+        // Ensure txns is always an array
+        if (!Array.isArray(txns)) {
+          console.warn('Transactions data is not an array:', txns);
+          txns = [];
+        }
 
         // Apply date range filter
         if (filters.dateRange !== 'all') {
@@ -72,7 +78,7 @@ export default function History() {
           }
         }
 
-        // Sort by date (newest first)
+        // Sort by date (newest first) - safe now that we know it's an array
         txns.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         setTransactions(txns);
       } else {
@@ -227,17 +233,17 @@ export default function History() {
                 <div className="flex items-center gap-3">
                   <div className="text-2xl">{getTypeIcon(tx.type)}</div>
                   <div>
-                    <div className="font-semibold capitalize">{tx.type}</div>
+                    <div className="font-semibold capitalize">{tx.type || 'Transaction'}</div>
                     <div className="text-xs text-gray-500">
-                      {new Date(tx.createdAt).toLocaleString()}
+                      {tx.createdAt ? new Date(tx.createdAt).toLocaleString() : 'N/A'}
                     </div>
                   </div>
                 </div>
                 <div className="text-right">
-                  {tx.amountTON && (
+                  {tx.amountTON && typeof tx.amountTON === 'number' && !isNaN(tx.amountTON) && (
                     <div className="font-bold">{tx.amountTON.toFixed(4)} TON</div>
                   )}
-                  {tx.amountNGN && (
+                  {tx.amountNGN && typeof tx.amountNGN === 'number' && !isNaN(tx.amountNGN) && (
                     <div className="text-sm text-gray-600">
                       ₦{tx.amountNGN.toLocaleString('en-NG', { minimumFractionDigits: 2 })}
                     </div>

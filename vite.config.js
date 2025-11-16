@@ -41,8 +41,10 @@ export default defineConfig({
     ],
     proxy: {
       '/api': {
+        // Local development - proxy to local backend
         target: process.env.VITE_API_URL || 'http://localhost:5000',
-        changeOrigin: true
+        changeOrigin: true,
+        secure: false
       }
     }
   }
