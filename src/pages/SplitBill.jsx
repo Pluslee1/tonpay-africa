@@ -179,11 +179,11 @@ export default function SplitBill() {
 
   return (
     <div className="w-full h-screen overflow-y-auto overflow-x-hidden">
-      <div className="max-w-2xl mx-auto space-y-3 px-3 py-3 pb-24 app-gradient">
-        <h2 className="text-xl font-bold">Split Bill</h2>
+      <div className="max-w-2xl mx-auto space-y-2 px-2 py-2 pb-32 app-gradient">
+        <h2 className="text-lg font-bold">Split Bill</h2>
 
-      <div className="tp-card p-3">
-        <div className="mb-2">
+      <div className="tp-card p-2">
+        <div className="mb-1 scale-90 origin-left">
           <TonConnectButton />
         </div>
         {address && (
@@ -191,21 +191,21 @@ export default function SplitBill() {
         )}
       </div>
 
-      <form onSubmit={handleSubmit} className="tp-card p-3 space-y-3">
+      <form onSubmit={handleSubmit} className="tp-card p-2 space-y-2">
         <div>
-          <label className="block text-xs font-medium mb-1">Description</label>
+          <label className="block text-xs font-medium mb-0.5">Description</label>
           <input
             type="text"
             required
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            className="tp-input w-full text-sm py-2"
-            placeholder="e.g., Dinner at restaurant"
+            className="tp-input w-full text-xs py-1"
+            placeholder="e.g., Dinner"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-medium mb-1">Total Amount (TON)</label>
+          <label className="block text-xs font-medium mb-0.5">Total Amount (TON)</label>
           <input
             type="number"
             step="0.01"
@@ -213,44 +213,44 @@ export default function SplitBill() {
             required
             value={formData.totalAmount}
             onChange={(e) => setFormData({ ...formData, totalAmount: e.target.value })}
-            className="tp-input w-full text-sm py-2"
+            className="tp-input w-full text-xs py-1"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-medium mb-1">Split Type</label>
+          <label className="block text-xs font-medium mb-0.5">Split Type</label>
           <select
             value="ton"
             onChange={(e) => setFormData({ ...formData, splitType: 'ton' })}
-            className="tp-input w-full text-sm py-2"
+            className="tp-input w-full text-xs py-1"
           >
             <option value="ton">Credit in TON</option>
           </select>
         </div>
 
         <div className="tp-form-group">
-          <label className="text-xs font-medium mb-1 block">Recipient TON Address</label>
-          <div className="flex gap-2">
+          <label className="text-xs font-medium mb-0.5 block">Recipient Address</label>
+          <div className="flex gap-1">
             <input
               type="text"
               value={formData.recipient}
               onChange={(e) => setFormData({ ...formData, recipient: e.target.value })}
               placeholder="EQ..."
               required
-              className="tp-input flex-1 text-sm py-2"
+              className="tp-input flex-1 text-xs py-1"
             />
             <button 
               type="button"
               onClick={() => setFormData({ ...formData, recipient: user.address })}
-              className="tp-btn tp-button-secondary text-xs px-2 py-2 whitespace-nowrap"
+              className="tp-btn tp-button-secondary text-xs px-2 py-1 whitespace-nowrap"
             >
-              Use Mine
+              Mine
             </button>
           </div>
           {formData.recipient && (
-            <div className="mt-1 text-xs flex items-center">
-              <span className={`px-1.5 py-0.5 rounded mr-1 text-xs ${isValidTONAddress(formData.recipient) ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                {isValidTONAddress(formData.recipient) ? '✓ Valid' : '⚠ Invalid'}
+            <div className="mt-0.5 text-xs flex items-center">
+              <span className={`px-1 py-0.5 rounded mr-1 text-xs ${isValidTONAddress(formData.recipient) ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                {isValidTONAddress(formData.recipient) ? '✓' : '⚠'}
               </span>
               <span className="font-mono text-xs">
                 {formData.recipient.slice(0, 6)}...{formData.recipient.slice(-4)}
@@ -260,66 +260,67 @@ export default function SplitBill() {
         </div>
 
         <div>
-          <div className="flex gap-1.5 mb-2">
+          <div className="flex gap-1 mb-1">
             <button 
+              type="button"
               onClick={splitEqually}
-              className="tp-btn tp-button-secondary text-xs flex-1 px-2 py-1.5"
+              className="tp-btn tp-button-secondary text-xs flex-1 px-1 py-1"
             >
-              Split Equally
+              Equal
             </button>
             <button 
+              type="button"
               onClick={splitByPercentage}
-              className="tp-btn tp-button-secondary text-xs flex-1 px-2 py-1.5"
+              className="tp-btn tp-button-secondary text-xs flex-1 px-1 py-1"
             >
               By %
             </button>
             <button 
+              type="button"
               onClick={splitByRatios}
-              className="tp-btn tp-button-secondary text-xs flex-1 px-2 py-1.5"
+              className="tp-btn tp-button-secondary text-xs flex-1 px-1 py-1"
             >
-              By Ratio
+              Ratio
             </button>
           </div>
-          <div className="space-y-1.5 mb-2">
+          <div className="space-y-1 mb-1">
             {formData.members.map((p, i) => (
-              <div key={i} className="p-2 tp-card bg-gray-50 rounded-lg">
-                <div className="flex gap-1.5 items-center mb-1.5">
+              <div key={i} className="p-1.5 tp-card bg-gray-50 rounded">
+                <div className="flex gap-1 items-center mb-1">
                   <input
                     type="text"
-                    placeholder="TON Address (EQ...)"
+                    placeholder="TON Address"
                     value={p.address}
                     onChange={(e) => handleParticipantChange(i, 'address', e.target.value)}
-                    className="tp-input flex-1 text-xs py-1.5"
+                    className="tp-input flex-1 text-xs py-0.5"
                   />
                   <button
                     type="button"
                     onClick={() => removeParticipant(i)}
-                    className="tp-btn bg-red-500 text-white px-2 py-1.5 text-xs"
+                    className="tp-btn bg-red-500 text-white px-1.5 py-0.5 text-xs"
                   >
                     ✕
                   </button>
                 </div>
-                <div className="flex gap-1.5">
+                <div className="flex gap-1">
                   <div className="flex-1">
-                    <label className="text-xs opacity-70 mb-0.5 block">Ratio</label>
                     <input
                       type="number"
-                      placeholder="1"
+                      placeholder="Ratio"
                       value={p.ratio || 1}
                       onChange={(e) => handleParticipantChange(i, 'ratio', e.target.value)}
                       min="1"
-                      className="tp-input w-full text-xs py-1.5"
+                      className="tp-input w-full text-xs py-0.5"
                     />
                   </div>
                   <div className="flex-1">
-                    <label className="text-xs opacity-70 mb-0.5 block">Share (TON)</label>
                     <input
                       type="number"
                       step="0.01"
-                      placeholder="0.00"
+                      placeholder="Share"
                       value={p.share || 0}
                       onChange={(e) => handleParticipantChange(i, 'share', e.target.value)}
-                      className="tp-input w-full text-xs py-1.5"
+                      className="tp-input w-full text-xs py-0.5"
                     />
                   </div>
                 </div>
@@ -332,16 +333,16 @@ export default function SplitBill() {
           <button
             type="button"
             onClick={addParticipant}
-            className="w-full py-1.5 border-2 border-dashed rounded-lg text-gray-600 text-sm"
+            className="w-full py-1 border-2 border-dashed rounded text-gray-600 text-xs"
           >
-            + Add Participant
+            + Add
           </button>
         </div>
 
         {formData.totalAmount && totalPeople > 0 && (
-          <div className="p-2.5 tp-card tone-split">
+          <div className="p-1.5 tp-card tone-split">
             <p className="text-xs text-gray-600">Per Person:</p>
-            <p className="text-lg font-bold">
+            <p className="text-base font-bold">
               {(perPerson || 0).toFixed(2)} TON
             </p>
           </div>
@@ -350,7 +351,7 @@ export default function SplitBill() {
         <button
           type="submit"
           disabled={loading || formData.members.length === 0 || !formData.recipient}
-          className="w-full tp-btn tp-button-primary disabled:opacity-50 text-sm py-2"
+          className="w-full tp-btn tp-button-primary disabled:opacity-50 text-sm py-2 sticky bottom-0 shadow-lg"
         >
           {loading ? 'Creating...' : 'Create Split Bill'}
         </button>
