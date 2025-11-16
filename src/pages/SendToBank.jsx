@@ -36,6 +36,10 @@ export default function SendToBank() {
   const [verifying, setVerifying] = useState(false);
   const [loading, setLoading] = useState(false);
   const [balance, setBalance] = useState(0);
+  
+  // Ensure rate and balance are always valid numbers
+  const safeRate = typeof rate === 'number' && !isNaN(rate) && rate > 0 ? rate : 2000;
+  const safeBalance = typeof balance === 'number' && !isNaN(balance) ? balance : 0;
 
   const mockAddress = () => 'EQA'.padEnd(48, 'A');
 
@@ -51,9 +55,10 @@ export default function SendToBank() {
   const fetchRate = async () => {
     try {
       const res = await axios.get('/api/rate');
-      setRate(res.data.rate);
+      setRate(res.data?.rate || 2000);
     } catch (error) {
       console.error('Rate fetch error:', error);
+      setRate(2000); // Fallback to default rate
     }
   };
 
@@ -119,8 +124,8 @@ export default function SendToBank() {
       return;
     }
 
-    const amountTON = parseFloat(formData.amountTON);
-    const amountNGN = amountTON * rate;
+    const amountTON = parseFloat(formData.amountTON) || 0;
+    const amountNGN = amountTON * safeRate;
 
     // Check transfer limit (50,000 NGN) - require registration
     if (amountNGN > 50000) {
@@ -167,7 +172,7 @@ export default function SendToBank() {
     setLoading(true);
     const loadingToast = toast.loading('Processing transfer request...');
     try {
-      const amountTON = parseFloat(formData.amountTON);
+      const amountTON = parseFloat(formData.amountTON) || 0;
       // Only deduct from balance if not from gift conversion
       // Gift conversion uses the gift amount, not user's balance
       if (enabled && !fromGift) {
@@ -178,7 +183,7 @@ export default function SendToBank() {
           return;
         }
       }
-      const amountNGN = amountTON * rate;
+      const amountNGN = amountTON * safeRate;
       const walletAddr = address || mockAddress();
       
       const res = await axios.post('/api/transaction/convert', {
@@ -297,8 +302,8 @@ export default function SendToBank() {
         title="Transfer Request Received!"
         message="Your payout request has been received and is being processed. You'll receive a notification once it's completed."
         transactionId={transactionId}
-        amountTON={parseFloat(formData.amountTON)}
-        amountNGN={parseFloat(formData.amountTON) * rate}
+        amountTON={parseFloat(formData.amountTON) || 0}
+        amountNGN={(parseFloat(formData.amountTON) || 0) * safeRate}
         details={{
           'Bank': formData.bankName,
           'Account Number': formData.accountNumber,
@@ -313,7 +318,7 @@ export default function SendToBank() {
   }
 
   if (step === 2) {
-    const amountNGN = parseFloat(formData.amountTON) * rate;
+    const amountNGN = (parseFloat(formData.amountTON) || 0) * safeRate;
     const fee = amountNGN * 0.02;
     const finalNGN = amountNGN - fee;
 
@@ -350,11 +355,11 @@ export default function SendToBank() {
               </div>
               <div className="flex justify-between py-2 border-b border-white/10">
                 <span className="text-sm opacity-70">Amount (NGN)</span>
-                <span className="font-semibold">₦{finalNGN.toLocaleString('en-NG', { minimumFractionDigits: 2 })}</span>
+                <span className="font-semibold">₦{(finalNGN || 0).toLocaleString('en-NG', { minimumFractionDigits: 2 })}</span>
               </div>
               <div className="flex justify-between py-2 border-b border-white/10">
                 <span className="text-sm opacity-70">Fee (2%)</span>
-                <span className="font-semibold">₦{fee.toLocaleString('en-NG', { minimumFractionDigits: 2 })}</span>
+                <span className="font-semibold">₦{(fee || 0).toLocaleString('en-NG', { minimumFractionDigits: 2 })}</span>
               </div>
               <div className="flex justify-between py-2 border-b border-white/10">
                 <span className="text-sm opacity-70">Bank</span>
@@ -433,15 +438,15 @@ export default function SendToBank() {
             readOnly={fromGift} // Lock amount if from gift conversion
           />
             <div className="mt-2 text-lg font-semibold text-[var(--tg-theme-text-color)]">
-              ≈ ₦{formData.amountTON ? (parseFloat(formData.amountTON) * rate).toLocaleString('en-NG', { minimumFractionDigits: 2 }) : '0.00'}
+              ≈ ₦{formData.amountTON ? ((parseFloat(formData.amountTON) || 0) * safeRate).toLocaleString('en-NG', { minimumFractionDigits: 2 }) : '0.00'}
             </div>
             {!fromGift && (
-              <p className="text-xs opacity-70 mt-1">Available: {balance.toFixed(2)} TON</p>
+              <p className="text-xs opacity-70 mt-1">Available: {safeBalance.toFixed(2)} TON</p>
             )}
             {fromGift && (
               <p className="text-xs opacity-70 mt-1 text-green-600">💰 Gift amount: {giftAmount} TON</p>
             )}
-            <p className="text-xs opacity-60">Rate: 1 TON = ₦{rate.toLocaleString()}</p>
+            <p className="text-xs opacity-60">Rate: 1 TON = ₦{safeRate.toLocaleString()}</p>
           </div>
 
           <div>
