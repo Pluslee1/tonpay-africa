@@ -189,12 +189,29 @@ export default function Admin() {
     e.preventDefault();
     setLoading(true);
     try {
-      await login(loginForm.email, loginForm.password);
+      const result = await login(loginForm.email, loginForm.password);
+      console.log('Login result:', result);
+      
+      // Verify admin status after login
+      if (result.user?.role !== 'admin') {
+        toast.error('Access denied. Admin role required.');
+        setLoading(false);
+        return;
+      }
+      
       toast.success('Login successful!');
+      
+      // Force re-check admin status
+      await fetchUser();
+      
+      // Small delay to ensure state updates
+      setTimeout(() => {
+        setLoading(false);
+      }, 100);
     } catch (error) {
+      console.error('Login error:', error);
       const errorMessage = error.response?.data?.error || error.message || 'Login failed. Please check your credentials.';
       toast.error(`Login failed: ${errorMessage}`);
-    } finally {
       setLoading(false);
     }
   };

@@ -44,11 +44,21 @@ export const AuthProvider = ({ children }) => {
       throw new Error(res.data.error || 'Login failed');
     }
     
+    // Store tokens
     localStorage.setItem('accessToken', res.data.accessToken);
     localStorage.setItem('refreshToken', res.data.refreshToken);
     axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.accessToken}`;
-    setUser(res.data.user);
-    setIsAdmin(res.data.user?.role === 'admin');
+    
+    // Update user state
+    const userData = res.data.user || {};
+    setUser(userData);
+    
+    // Check if user is admin - check both role field and ensure it's explicitly set
+    const isAdminUser = userData.role === 'admin';
+    setIsAdmin(isAdminUser);
+    
+    console.log('Login successful:', { user: userData, isAdmin: isAdminUser });
+    
     return res.data;
   };
 
