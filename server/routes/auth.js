@@ -192,6 +192,80 @@ router.get('/me', authMiddleware, async (req, res) => {
   }
 });
 
+// Create admin account (one-time setup - should be secured in production)
+// Only works if NO admin exists yet OR if ADMIN_SETUP_TOKEN is provided
+router.post('/create-admin', async (req, res) => {
+  try {
+    // Check if ADMIN_SETUP_TOKEN is required and provided
+    if (process.env.ADMIN_SETUP_TOKEN) {
+      const { setupToken } = req.body;
+      if (setupToken !== process.env.ADMIN_SETUP_TOKEN) {
+        return res.status(403).json({ error: 'Invalid setup token' });
+      }
+    }
+
+    // Check if admin already exists
+    const existingAdmin = await User.findOne({ role: 'admin' });
+    if (existingAdmin && !process.env.ADMIN_SETUP_TOKEN) {
+      return res.status(403).json({ error: 'Admin already exists. Use ADMIN_SETUP_TOKEN to create another.' });
+    }
+
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password required' });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    }
+
+    // Check if user already exists
+    let user = await User.findOne({ email: email.toLowerCase() });
+
+    if (user) {
+      // Update existing user to admin
+      user.role = 'admin';
+      user.password = password; // Will be hashed by pre-save hook
+      await user.save();
+      
+      return res.json({
+        success: true,
+        message: 'Existing user updated to admin role',
+        user: {
+          email: user.email,
+          role: user.role
+        }
+      });
+    } else {
+      // Create new admin user
+      user = new User({
+        email: email.toLowerCase(),
+        password: password,
+        profile: {
+          firstName: 'Admin',
+          lastName: 'User'
+        },
+        role: 'admin',
+        'kyc.status': 'verified'
+      });
+      await user.save();
+      
+      return res.json({
+        success: true,
+        message: 'Admin user created successfully',
+        user: {
+          email: user.email,
+          role: user.role
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Create admin error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 router.post('/refresh', async (req, res) => {
   try {
     const { refreshToken } = req.body;
