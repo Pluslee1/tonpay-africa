@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useTonAddress } from '@tonconnect/ui-react';
 import { useDemoWallet } from '../context/DemoWalletContext';
+import { getHistory } from '../services/history';
 import { ListSkeleton } from '../components/LoadingSkeleton';
 import EmptyState from '../components/EmptyState';
 import toast from 'react-hot-toast';
@@ -62,6 +63,32 @@ export default function History() {
         if (!Array.isArray(txns)) {
           console.warn('Transactions data is not an array:', txns);
           txns = [];
+        }
+
+        // If backend returns empty, try localStorage as fallback
+        if (txns.length === 0) {
+          console.log('📦 Backend empty, checking localStorage...');
+          const localHistory = getHistory();
+          if (localHistory && localHistory.length > 0) {
+            console.log('✅ Found', localHistory.length, 'transactions in localStorage');
+            // Map localStorage format to backend format
+            txns = localHistory.map(item => ({
+              _id: item.id,
+              type: item.section === 'transfer' ? 'payout' : item.section,
+              amountTON: item.amountTON,
+              amountNGN: item.amountNGN,
+              status: 'completed', // Assume completed for local history
+              createdAt: item.createdAt,
+              walletAddress: item.meta?.walletAddress,
+              bankDetails: item.meta?.bankCode ? {
+                accountName: item.meta.accountName,
+                accountNumber: item.meta.accountNumber,
+                bankName: item.meta.bankName
+              } : undefined,
+              phone: item.meta?.phone,
+              network: item.meta?.network
+            }));
+          }
         }
 
         // Apply date range filter
