@@ -82,8 +82,14 @@ mongoose.connection.on('error', (err) => {
   console.error('❌ MongoDB error:', err);
 });
 
-// Root route - API information
+// Simple health check endpoint for Render (must return simple response)
 app.get('/', (req, res) => {
+  // Simple "OK" response for Render health checks
+  res.send('OK');
+});
+
+// API information endpoint
+app.get('/api', (req, res) => {
   res.json({
     name: 'TonPay Africa API',
     version: '2.0.0',
@@ -105,13 +111,14 @@ app.get('/', (req, res) => {
   });
 });
 
-// Health check endpoint
+// Health check endpoint (also simple for Render)
 app.get('/health', (req, res) => {
-  res.json({
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
-  });
+  // Simple response for Render health checks
+  if (mongoose.connection.readyState === 1) {
+    res.send('OK');
+  } else {
+    res.status(503).send('Database not connected');
+  }
 });
 
 // Development endpoint to clear rate limits (only in development)
