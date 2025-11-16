@@ -195,20 +195,24 @@ app.listen(PORT, () => {
   if (process.env.ENABLE_AUTO_PROCESSING !== 'false') {
     console.log(`🤖 Auto-processing enabled (runs every 5 minutes)`);
     
-    // Process immediately on startup (optional)
+    // Process immediately on startup (optional) - wait longer to avoid affecting startup
     setTimeout(async () => {
       try {
         const result = await withdrawalProcessor.processPendingWithdrawals();
-        console.log(`📊 Initial auto-processing: ${result.processed} processed, ${result.skipped} skipped, ${result.failed} failed`);
+        // Only log if there's actual activity
+        if (result.processed > 0 || result.failed > 0) {
+          console.log(`📊 Initial auto-processing: ${result.processed} processed, ${result.skipped} skipped, ${result.failed} failed`);
+        }
       } catch (error) {
         console.error('Initial auto-processing error:', error);
       }
-    }, 30000); // Wait 30 seconds after startup
+    }, 60000); // Wait 60 seconds after startup (increased to avoid affecting health checks)
     
     // Schedule automatic processing every 5 minutes
     setInterval(async () => {
       try {
         const result = await withdrawalProcessor.processPendingWithdrawals();
+        // Only log if there's actual activity
         if (result.processed > 0 || result.failed > 0) {
           console.log(`📊 Auto-processing: ${result.processed} processed, ${result.skipped} skipped, ${result.failed} failed`);
         }

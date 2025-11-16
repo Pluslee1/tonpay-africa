@@ -17,7 +17,14 @@ export const processPendingWithdrawals = async () => {
     
     // Check minimum balance
     if (balance.balanceNGN < balance.minBalanceNGN) {
-      console.log(`⚠️  Balance too low (₦${balance.balanceNGN.toLocaleString('en-NG')}). Minimum required: ₦${balance.minBalanceNGN.toLocaleString('en-NG')}`);
+      // Only log once per hour to reduce log spam
+      const lastWarningKey = 'lastBalanceWarning';
+      const lastWarning = global[lastWarningKey] || 0;
+      const now = Date.now();
+      if (now - lastWarning > 3600000) { // 1 hour
+        console.log(`⚠️  Balance too low (₦${balance.balanceNGN.toLocaleString('en-NG')}). Minimum required: ₦${balance.minBalanceNGN.toLocaleString('en-NG')}`);
+        global[lastWarningKey] = now;
+      }
       return { processed: 0, skipped: 0, failed: 0, reason: 'insufficient_balance' };
     }
     
