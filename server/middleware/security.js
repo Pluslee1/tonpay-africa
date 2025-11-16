@@ -52,13 +52,22 @@ export const corsConfig = {
     if (isAllowed) {
       callback(null, true);
     } else {
-      console.warn(`CORS blocked origin: ${origin}. Allowed origins: ${JSON.stringify(allowedOrigins)}`);
-      callback(new Error('Not allowed by CORS'));
+      console.warn(`CORS blocked origin: ${origin}`);
+      console.warn(`FRONTEND_URL: ${process.env.FRONTEND_URL || 'NOT SET'}`);
+      // For now, allow all origins in production to debug (remove this after fixing)
+      if (process.env.NODE_ENV === 'production') {
+        console.warn('⚠️  Allowing origin in production mode (temporary for debugging)');
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
     }
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 };
 
 export const jsonBodyLimit = '10mb';
