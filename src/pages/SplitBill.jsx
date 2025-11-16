@@ -19,6 +19,10 @@ export default function SplitBill() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [bills, setBills] = useState([]);
+  
+  // Ensure bills and rate are always valid
+  const safeBills = Array.isArray(bills) ? bills : [];
+  const safeRate = typeof rate === 'number' && !isNaN(rate) && rate > 0 ? rate : 2000;
 
   useEffect(() => {
     console.log('SplitBill component mounted');
@@ -29,18 +33,21 @@ export default function SplitBill() {
   const fetchRate = async () => {
     try {
       const res = await axios.get('/api/rate');
-      setRate(res.data.rate);
+      setRate(res.data?.rate || 2000);
     } catch (error) {
       console.error('Rate fetch error:', error);
+      setRate(2000);
     }
   };
 
   const fetchBills = async () => {
     try {
       const res = await axios.get('/api/bills');
-      setBills(res.data);
+      // Ensure we always set an array
+      setBills(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
       console.error('Bills fetch error:', error);
+      setBills([]);
     }
   };
 
@@ -320,7 +327,7 @@ export default function SplitBill() {
           <div className="p-2.5 tp-card tone-split">
             <p className="text-xs text-gray-600">Per Person:</p>
             <p className="text-lg font-bold">
-              {perPerson.toFixed(2)} TON
+              {(perPerson || 0).toFixed(2)} TON
             </p>
           </div>
         )}
@@ -339,7 +346,7 @@ export default function SplitBill() {
           <h3 className="font-bold mb-1.5 text-sm">✅ Split Bill Created!</h3>
           <p className="text-xs mb-1.5">Split ID: {result.splitId}</p>
           {result.perPerson && (
-            <p className="text-xs mb-1.5">Per Person: {result.perPerson.ton.toFixed(4)} TON (₦{result.perPerson.ngn.toFixed(2)})</p>
+            <p className="text-xs mb-1.5">Per Person: {(result.perPerson.ton || 0).toFixed(4)} TON (₦{(result.perPerson.ngn || 0).toFixed(2)})</p>
           )}
           {result.joinUrl && (
             <div className="mt-2 p-2 bg-blue-50 rounded-lg">
@@ -369,7 +376,7 @@ export default function SplitBill() {
 
       {bills.length > 0 && (
         <div className="space-y-2">
-          {bills.map(bill => (
+          {safeBills.map(bill => (
             <div key={bill._id} className="tp-card mb-2 p-2">
               <BillDetail bill={bill} />
             </div>
