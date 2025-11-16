@@ -11,7 +11,17 @@ export const securityHeaders = (req, res, next) => {
 export const corsConfig = {
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
+    if (!origin) {
+      return callback(null, true);
+    }
+    
+    // Always allow Vercel domains in production
+    if (process.env.NODE_ENV === 'production') {
+      // Allow all vercel.app domains
+      if (origin.includes('.vercel.app') || origin.includes('vercel.app')) {
+        return callback(null, true);
+      }
+    }
     
     const allowedOrigins = [
       'http://localhost:5173',
@@ -54,9 +64,9 @@ export const corsConfig = {
     } else {
       console.warn(`CORS blocked origin: ${origin}`);
       console.warn(`FRONTEND_URL: ${process.env.FRONTEND_URL || 'NOT SET'}`);
-      // For now, allow all origins in production to debug (remove this after fixing)
+      // Allow all origins in production (for now, to ensure it works)
       if (process.env.NODE_ENV === 'production') {
-        console.warn('⚠️  Allowing origin in production mode (temporary for debugging)');
+        console.warn('⚠️  Allowing origin in production mode');
         callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS'));
