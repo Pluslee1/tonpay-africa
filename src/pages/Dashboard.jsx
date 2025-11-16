@@ -14,6 +14,12 @@ export default function Dashboard() {
   const address = useTonAddress();
   const { demoBalance, enabled } = useDemoWallet();
   const [balance, setBalance] = useState({ ton: 0, ngn: 0 });
+  
+  // Ensure balance is always an object with valid numbers
+  const safeBalance = {
+    ton: typeof balance?.ton === 'number' && !isNaN(balance.ton) ? balance.ton : 0,
+    ngn: typeof balance?.ngn === 'number' && !isNaN(balance.ngn) ? balance.ngn : 0
+  };
   const [rate, setRate] = useState(2000);
   const [loading, setLoading] = useState(false);
   const [recent, setRecent] = useState([]);
@@ -58,9 +64,11 @@ export default function Dashboard() {
   const fetchRate = async () => {
     try {
       const res = await axios.get('/api/rate');
-      setRate(res.data.rate);
+      setRate(res.data?.rate || 2000);
     } catch (error) {
       console.error('Rate fetch error:', error);
+      // Keep default rate if fetch fails
+      setRate(2000);
       toast.error('Failed to fetch exchange rate');
     }
   };
@@ -73,12 +81,15 @@ export default function Dashboard() {
         setBalance({ ton: 0, ngn: 0 });
       } else if (enabled) {
         // Wallet connected + demo mode enabled - show demo balance
-        setBalance({ ton: demoBalance, ngn: demoBalance * rate });
+        const tonBalance = demoBalance || 0;
+        const ngnBalance = tonBalance * (rate || 2000);
+        setBalance({ ton: tonBalance, ngn: ngnBalance });
       } else {
         // Wallet connected + demo mode disabled - show real balance
         const result = await getBalance(address);
         const ton = result?.balance || 0;
-        setBalance({ ton, ngn: ton * rate });
+        const ngn = ton * (rate || 2000);
+        setBalance({ ton, ngn });
       }
     } finally {
       setLoading(false);
@@ -106,9 +117,9 @@ export default function Dashboard() {
         ) : address ? (
           <div className="bg-[var(--tg-theme-secondary-bg-color)] rounded-2xl p-4 text-center tp-card">
             <p className="text-sm opacity-80">Your Balance{enabled ? ' (Demo)' : ''}</p>
-            <h2 className="text-3xl font-bold mt-1">{balance.ton.toFixed(2)} TON</h2>
-            <p className="text-base mt-1 opacity-90">≈ ₦{balance.ngn.toLocaleString('en-NG', { minimumFractionDigits: 2 })}</p>
-            <p className="text-xs opacity-60 mt-1">1 TON = ₦{rate.toLocaleString()}</p>
+            <h2 className="text-3xl font-bold mt-1">{safeBalance.ton.toFixed(2)} TON</h2>
+            <p className="text-base mt-1 opacity-90">≈ ₦{safeBalance.ngn.toLocaleString('en-NG', { minimumFractionDigits: 2 })}</p>
+            <p className="text-xs opacity-60 mt-1">1 TON = ₦{(rate || 2000).toLocaleString()}</p>
           </div>
         ) : (
           <div className="bg-[var(--tg-theme-secondary-bg-color)] rounded-2xl p-6 text-center tp-card">
@@ -175,14 +186,14 @@ export default function Dashboard() {
               >
                 <div>
                   <div className="text-sm font-medium">{it.title || it.section}</div>
-                  <div className="text-xs opacity-70">{new Date(it.createdAt).toLocaleString()}</div>
+                  <div className="text-xs opacity-70">{it.createdAt ? new Date(it.createdAt).toLocaleString() : 'N/A'}</div>
                 </div>
                 <div className="text-right">
-                  {typeof it.amountTON === 'number' && (
-                    <span className="text-sm font-semibold">{it.amountTON.toFixed(2)} TON</span>
+                  {typeof it.amountTON === 'number' && !isNaN(it.amountTON) && (
+                    <span className="text-sm font-semibold">{(it.amountTON || 0).toFixed(2)} TON</span>
                   )}
-                  {typeof it.amountNGN === 'number' && (
-                    <div className="text-xs opacity-80">₦{it.amountNGN.toLocaleString('en-NG')}</div>
+                  {typeof it.amountNGN === 'number' && !isNaN(it.amountNGN) && (
+                    <div className="text-xs opacity-80">₦{(it.amountNGN || 0).toLocaleString('en-NG')}</div>
                   )}
                 </div>
               </button>
