@@ -20,6 +20,10 @@ export default function Airtime() {
   const [rate, setRate] = useState(2000);
   const [loading, setLoading] = useState(false);
   const [balance, setBalance] = useState(0);
+  
+  // Ensure rate and balance are always valid numbers
+  const safeRate = typeof rate === 'number' && !isNaN(rate) && rate > 0 ? rate : 2000;
+  const safeBalance = typeof balance === 'number' && !isNaN(balance) ? balance : 0;
 
   const mockAddress = () => 'EQA'.padEnd(48, 'A');
 
@@ -31,8 +35,10 @@ export default function Airtime() {
   const fetchRate = async () => {
     try {
       const res = await axios.get('/api/rate');
-      setRate(res.data.rate);
-    } catch (error) {}
+      setRate(res.data?.rate || 2000);
+    } catch (error) {
+      setRate(2000);
+    }
   };
 
   const fetchBalance = async () => {
@@ -139,7 +145,7 @@ export default function Airtime() {
   }
 
   if (step === 2) {
-    const amountNGN = parseFloat(formData.amountTON) * rate;
+    const amountNGN = (parseFloat(formData.amountTON) || 0) * safeRate;
     const fee = amountNGN * 0.01;
     const finalNGN = amountNGN + fee;
 
@@ -184,7 +190,7 @@ export default function Airtime() {
               </div>
               <div className="flex justify-between py-2">
                 <span className="text-sm opacity-70">Amount (NGN)</span>
-                <span className="font-semibold">₦{finalNGN.toLocaleString('en-NG', { minimumFractionDigits: 2 })}</span>
+                <span className="font-semibold">₦{(finalNGN || 0).toLocaleString('en-NG', { minimumFractionDigits: 2 })}</span>
               </div>
             </div>
           </div>
@@ -245,8 +251,8 @@ export default function Airtime() {
             value={formData.amountTON}
             onChange={(e) => {
               const val = e.target.value;
-              if (balance > 0 && parseFloat(val) > balance) {
-                toast.error(`Amount cannot exceed your balance of ${balance.toFixed(2)} TON`);
+              if (safeBalance > 0 && parseFloat(val) > safeBalance) {
+                toast.error(`Amount cannot exceed your balance of ${safeBalance.toFixed(2)} TON`);
                 return;
               }
               setFormData({ ...formData, amountTON: val });
@@ -255,12 +261,12 @@ export default function Airtime() {
             placeholder="0.00"
           />
           <div className="mt-2 text-lg font-semibold text-[var(--tg-theme-text-color)]">
-            ≈ ₦{formData.amountTON ? (parseFloat(formData.amountTON) * rate).toLocaleString('en-NG', { minimumFractionDigits: 2 }) : '0.00'}
+            ≈ ₦{formData.amountTON ? ((parseFloat(formData.amountTON) || 0) * safeRate).toLocaleString('en-NG', { minimumFractionDigits: 2 }) : '0.00'}
           </div>
           {enabled || address ? (
             <>
-              <p className="text-xs opacity-70 mt-1">Available: {balance.toFixed(2)} TON</p>
-              <p className="text-xs opacity-60">Rate: 1 TON = ₦{rate.toLocaleString()}</p>
+              <p className="text-xs opacity-70 mt-1">Available: {safeBalance.toFixed(2)} TON</p>
+              <p className="text-xs opacity-60">Rate: 1 TON = ₦{safeRate.toLocaleString()}</p>
             </>
           ) : (
             <p className="text-xs opacity-60 mt-1">Connect wallet to see available balance</p>
