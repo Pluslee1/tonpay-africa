@@ -163,6 +163,35 @@ router.post('/login', authLimiter, async (req, res) => {
   }
 });
 
+// Get current user (requires authentication)
+router.get('/me', authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).select('-password -security.twoFactorSecret -security.pin');
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({
+      success: true,
+      user: {
+        id: user._id,
+        email: user.email,
+        phone: user.phone,
+        firstName: user.profile?.firstName,
+        lastName: user.profile?.lastName,
+        role: user.role,
+        kycStatus: user.kyc?.status,
+        status: user.status,
+        walletAddress: user.walletAddress
+      }
+    });
+  } catch (error) {
+    console.error('Get user error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 router.post('/refresh', async (req, res) => {
   try {
     const { refreshToken } = req.body;
@@ -347,6 +376,7 @@ router.post('/telegram-auth', async (req, res) => {
 });
 
 export default router;
+
 
 
 
