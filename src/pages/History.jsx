@@ -42,12 +42,17 @@ export default function History() {
       const params = new URLSearchParams();
       // Use address or demo wallet address
       const walletAddr = address || (enabled ? getMockAddress() : null);
+      
+      console.log('📊 Fetching transactions:', { walletAddr, filters });
+      
       if (walletAddr) params.append('walletAddress', walletAddr);
       if (filters.type !== 'all') params.append('type', filters.type);
       if (filters.status !== 'all') params.append('status', filters.status);
       if (filters.search) params.append('search', filters.search);
 
+      console.log('🔗 API call:', `/api/transaction?${params}`);
       const res = await axios.get(`/api/transaction?${params}`);
+      console.log('✅ API response:', res.data);
       
       // Check if response is successful (success can be true, undefined, or not false)
       if (res.data && res.data.success !== false) {
