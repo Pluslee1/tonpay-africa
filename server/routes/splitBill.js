@@ -59,7 +59,8 @@ router.post('/', async (req, res) => {
       joinUrl: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/split?splitId=${encodeURIComponent(splitId)}`
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Create split bill error:', error);
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
@@ -68,11 +69,12 @@ router.get('/:splitId', async (req, res) => {
   try {
     const split = await Split.findOne({ splitId: req.params.splitId });
     if (!split) {
-      return res.status(404).json({ error: 'Split bill not found' });
+      return res.status(404).json({ success: false, error: 'Split bill not found' });
     }
     res.json({ success: true, split });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Get split bill error:', error);
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
@@ -83,16 +85,16 @@ router.post('/:splitId/join', async (req, res) => {
     const split = await Split.findOne({ splitId: req.params.splitId });
     
     if (!split) {
-      return res.status(404).json({ error: 'Split bill not found' });
+      return res.status(404).json({ success: false, error: 'Split bill not found' });
     }
     
     const participant = split.participants.find(p => p.address === address);
     if (!participant) {
-      return res.status(400).json({ error: 'You are not a participant in this split bill' });
+      return res.status(400).json({ success: false, error: 'You are not a participant in this split bill' });
     }
     
     if (participant.paid) {
-      return res.status(400).json({ error: 'You have already paid your share' });
+      return res.status(400).json({ success: false, error: 'You have already paid your share' });
     }
     
     participant.paid = true;
@@ -100,7 +102,8 @@ router.post('/:splitId/join', async (req, res) => {
     
     res.json({ success: true, message: 'Payment recorded successfully' });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Join split bill error:', error);
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 

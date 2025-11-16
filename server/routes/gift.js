@@ -84,9 +84,12 @@ router.post('/webhook', async (req, res) => {
     // Get current rate (fallback to 2000)
     let rate = 2000;
     try {
-      const rateRes = await axios.get('http://localhost:5000/api/rate');
+      const backendUrl = process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 5000}`;
+      const rateRes = await axios.get(`${backendUrl}/api/rate`);
       rate = rateRes.data.rate || rate;
-    } catch (_) {}
+    } catch (_) {
+      // Use default rate if fetch fails
+    }
 
     if (isDbConnected()) {
       const gift = new Gift({
@@ -161,9 +164,12 @@ router.post('/send', async (req, res) => {
     // Get current rate
     let rate = 2000;
     try {
-      const rateRes = await axios.get(`${process.env.BACKEND_URL || 'http://localhost:5000'}/api/rate`);
+      const backendUrl = process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 5000}`;
+      const rateRes = await axios.get(`${backendUrl}/api/rate`);
       rate = rateRes.data.rate || rate;
-    } catch (_) {}
+    } catch (_) {
+      // Use default rate if fetch fails
+    }
 
     // Get sender info
     let senderUsername = 'Anonymous';
