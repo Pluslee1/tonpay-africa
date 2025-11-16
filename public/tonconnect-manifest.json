@@ -1,5 +1,5 @@
 {
-  "url": "https://tonpay-africa.vercel.app",
+  "url": "https://YOUR-FRONTEND-NGROK-URL.ngrok-free.dev",
   "name": "TONPay Africa",
-  "iconUrl": "https://tonpay-africa.vercel.app/icon.png"
+  "iconUrl": "https://YOUR-FRONTEND-NGROK-URL.ngrok-free.dev/icon.png"
 }
