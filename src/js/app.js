@@ -20,7 +20,10 @@ let walletState = {
 };
 
 const TON_TO_NGN_RATE = 2000; // 1 TON = ₦2,000
-const API_BASE = 'http://localhost:3001/api';
+// Use environment variable or fallback to relative path for production
+const API_BASE = import.meta.env.VITE_API_URL 
+  ? `${import.meta.env.VITE_API_URL}/api` 
+  : '/api';
 
 // Initialize Telegram WebApp
 const tg = window.Telegram?.WebApp || {

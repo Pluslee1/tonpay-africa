@@ -10,15 +10,27 @@ export const securityHeaders = (req, res, next) => {
 
 export const corsConfig = {
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
+    // Allow requests with no origin (like mobile apps, curl requests, Telegram MiniApp)
     if (!origin) {
       return callback(null, true);
     }
     
-    // Always allow Vercel domains in production
+    // Always allow in production for flexibility (can be restricted later)
     if (process.env.NODE_ENV === 'production') {
-      // Allow all vercel.app domains
-      if (origin.includes('.vercel.app') || origin.includes('vercel.app')) {
+      // Allow all common deployment platforms
+      if (
+        origin.includes('.vercel.app') || 
+        origin.includes('vercel.app') ||
+        origin.includes('.railway.app') ||
+        origin.includes('railway.app') ||
+        origin.includes('.render.com') ||
+        origin.includes('render.com') ||
+        origin.includes('.netlify.app') ||
+        origin.includes('netlify.app') ||
+        origin.includes('.telegram.org') ||  // Telegram MiniApp origin
+        origin.includes('web.telegram.org') || // Telegram Web
+        origin.includes('t.me') // Telegram MiniApp via t.me
+      ) {
         return callback(null, true);
       }
     }
@@ -26,6 +38,7 @@ export const corsConfig = {
     const allowedOrigins = [
       'http://localhost:5173',
       'http://localhost:3000',
+      'http://localhost:5174',
       /\.ngrok-free\.dev$/,
       /\.ngrok\.io$/,
       /\.ngrok-free\.app$/,
@@ -33,19 +46,36 @@ export const corsConfig = {
       /\.railway\.app$/, // Railway deployments
       /\.render\.com$/,  // Render deployments
       /\.netlify\.app$/, // Netlify deployments
+      /\.telegram\.org$/, // Telegram MiniApp
+      /web\.telegram\.org$/, // Telegram Web
+      /t\.me$/ // Telegram MiniApp via t.me
     ];
     
     // If FRONTEND_URL is set, allow it and its subdomains
     if (process.env.FRONTEND_URL) {
-      const frontendUrl = new URL(process.env.FRONTEND_URL);
-      allowedOrigins.push(frontendUrl.origin);
-      // Allow subdomains
-      if (frontendUrl.hostname.includes('.')) {
-        const domainParts = frontendUrl.hostname.split('.');
-        if (domainParts.length >= 2) {
-          const baseDomain = domainParts.slice(-2).join('.');
-          allowedOrigins.push(new RegExp(`^https?://[^/]*\\.${baseDomain.replace(/\./g, '\\.')}$`));
+      try {
+        const frontendUrl = new URL(process.env.FRONTEND_URL);
+        allowedOrigins.push(frontendUrl.origin);
+        // Allow subdomains
+        if (frontendUrl.hostname.includes('.')) {
+          const domainParts = frontendUrl.hostname.split('.');
+          if (domainParts.length >= 2) {
+            const baseDomain = domainParts.slice(-2).join('.');
+            allowedOrigins.push(new RegExp(`^https?://[^/]*\\.${baseDomain.replace(/\./g, '\\.')}$`));
+          }
         }
+      } catch (e) {
+        console.warn('Invalid FRONTEND_URL:', process.env.FRONTEND_URL);
+      }
+    }
+    
+    // If TELEGRAM_ORIGIN is set, allow it explicitly
+    if (process.env.TELEGRAM_ORIGIN) {
+      try {
+        const telegramUrl = new URL(process.env.TELEGRAM_ORIGIN);
+        allowedOrigins.push(telegramUrl.origin);
+      } catch (e) {
+        console.warn('Invalid TELEGRAM_ORIGIN:', process.env.TELEGRAM_ORIGIN);
       }
     }
     
@@ -62,11 +92,12 @@ export const corsConfig = {
     if (isAllowed) {
       callback(null, true);
     } else {
-      console.warn(`CORS blocked origin: ${origin}`);
-      console.warn(`FRONTEND_URL: ${process.env.FRONTEND_URL || 'NOT SET'}`);
-      // Allow all origins in production (for now, to ensure it works)
+      console.warn(`⚠️  CORS: Origin "${origin}" not in allowed list`);
+      console.warn(`📋 FRONTEND_URL: ${process.env.FRONTEND_URL || 'NOT SET'}`);
+      console.warn(`📋 TELEGRAM_ORIGIN: ${process.env.TELEGRAM_ORIGIN || 'NOT SET'}`);
+      // In production, allow all origins for now (can be restricted later with specific origins)
       if (process.env.NODE_ENV === 'production') {
-        console.warn('⚠️  Allowing origin in production mode');
+        console.warn('✅ Allowing origin in production mode (temporary - consider restricting)');
         callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS'));
